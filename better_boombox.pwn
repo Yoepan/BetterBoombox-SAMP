@@ -374,7 +374,7 @@ public BBB_Update()
             if(PlayerListeningTo[i] != closest_bb_owner)
             {
                 new api_url[512];
-                format(api_url, sizeof(api_url), "%s/play?url=%s&token=bbb_premium_889", API_BASE_URL, Boombox[closest_bb_owner][bbURL]);
+                format(api_url, sizeof(api_url), "%s/play?token=bbb_premium_889&url=%s", API_BASE_URL, Boombox[closest_bb_owner][bbURL]);
                 
                 StopAudioStreamForPlayer(i);
                 PlayAudioStreamForPlayer(i, api_url, Boombox[closest_bb_owner][bbX], Boombox[closest_bb_owner][bbY], Boombox[closest_bb_owner][bbZ], maxDist, 1);

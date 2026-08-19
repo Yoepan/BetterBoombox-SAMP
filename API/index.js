@@ -12,8 +12,11 @@ app.get('/play', (req, res) => {
     const videoUrl = req.query.url;
     const token = req.query.token;
 
+    console.log(`[BBMusic] Request masuk! Token: ${token} | URL: ${videoUrl}`);
+
     // SISTEM ANTI MALING BANDWIDTH
     if (token !== 'bbb_premium_889') {
+        console.log(`[BBMusic] DITOLAK: Token salah!`);
         return res.status(403).send('Access Denied: Invalid Token');
     }
 
