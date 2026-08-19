@@ -136,6 +136,9 @@ public PlaceBetterBoombox(playerid)
 
     Boombox[playerid][bbObjectID] = CreateObject(2226, x, y, z, 0.0, 0.0, a);
     
+    // Animasi Naruh Boombox
+    ApplyAnimation(playerid, "BOMBER", "BOM_Plant", 4.0, 0, 0, 0, 0, 0);
+    
     new labelStr[128];
     format(labelStr, sizeof(labelStr), "{FFaa00}%s's BetterBoombox\n{FFFFFF}/setbb or /pickupbb", Boombox[playerid][bbOwnerName]);
     Boombox[playerid][bbLabel] = Create3DTextLabel(labelStr, 0xFFFFFFFF, x, y, z + 0.8, 10.0, Boombox[playerid][bbVW], 0);
@@ -150,9 +153,12 @@ public OnPlayerCommandText(playerid, cmdtext[])
 {
     if(strcmp(cmdtext, "/pickupbb", true) == 0)
     {
-        if(!Boombox[playerid][bbExists]) return 0;
-        if(GetPlayerSpecialAction(playerid) != SPECIAL_ACTION_DUCK) return 0;
-        if(GetPlayerDistanceFromPoint(playerid, Boombox[playerid][bbX], Boombox[playerid][bbY], Boombox[playerid][bbZ]) > 3.0) return 0;
+        if(!Boombox[playerid][bbExists]) return SendClientMessage(playerid, 0xFF0000FF, "[BetterBoombox] You don't have a boombox placed.");
+        if(GetPlayerSpecialAction(playerid) != SPECIAL_ACTION_DUCK) return SendClientMessage(playerid, 0xFF0000FF, "[BetterBoombox] You must crouch (C) to pick up your boombox.");
+        if(GetPlayerDistanceFromPoint(playerid, Boombox[playerid][bbX], Boombox[playerid][bbY], Boombox[playerid][bbZ]) > 3.0) return SendClientMessage(playerid, 0xFF0000FF, "[BetterBoombox] You are too far from your boombox.");
+
+        // Animasi Ngambil Boombox
+        ApplyAnimation(playerid, "BOMBER", "BOM_Plant", 4.0, 0, 0, 0, 0, 0);
 
         for(new i = 0; i < MAX_PLAYERS; i++) {
             if(IsPlayerConnected(i) && PlayerListeningTo[i] == playerid) {
@@ -174,9 +180,9 @@ public OnPlayerCommandText(playerid, cmdtext[])
 
     if(strcmp(cmdtext, "/setbb", true) == 0)
     {
-        if(!Boombox[playerid][bbExists]) return 0;
-        if(GetPlayerSpecialAction(playerid) != SPECIAL_ACTION_DUCK) return 0;
-        if(GetPlayerDistanceFromPoint(playerid, Boombox[playerid][bbX], Boombox[playerid][bbY], Boombox[playerid][bbZ]) > 3.0) return 0;
+        if(!Boombox[playerid][bbExists]) return SendClientMessage(playerid, 0xFF0000FF, "[BetterBoombox] You don't have a boombox placed.");
+        if(GetPlayerSpecialAction(playerid) != SPECIAL_ACTION_DUCK) return SendClientMessage(playerid, 0xFF0000FF, "[BetterBoombox] You must crouch (C) to set the boombox.");
+        if(GetPlayerDistanceFromPoint(playerid, Boombox[playerid][bbX], Boombox[playerid][bbY], Boombox[playerid][bbZ]) > 3.0) return SendClientMessage(playerid, 0xFF0000FF, "[BetterBoombox] You are too far from your boombox.");
 
         ShowBBBMainMenu(playerid);
         return 1;
