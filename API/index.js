@@ -12,11 +12,11 @@ app.get('/play', (req, res) => {
     const videoUrl = req.query.url;
     const token = req.query.token;
 
-    console.log(`[BBMusic] Request masuk! Token: ${token} | URL: ${videoUrl}`);
+    console.log(`[BetterBoombox] Incoming Request | Token: ${token} | URL: ${videoUrl}`);
 
-    // SISTEM ANTI MALING BANDWIDTH
+    // ANTI-LEECH BANDWIDTH SYSTEM
     if (token !== 'bbb_premium_889') {
-        console.log(`[BBMusic] DITOLAK: Token salah!`);
+        console.log(`[BetterBoombox] ACCESS DENIED: Invalid Token!`);
         return res.status(403).send('Access Denied: Invalid Token');
     }
 
@@ -38,7 +38,7 @@ app.get('/play', (req, res) => {
                 o: '-',
                 f: '18',
                 'extractor-args': 'youtube:player_client=android',
-                'match-filter': 'duration <= 600', // LIMIT MAX 10 MENIT
+                'match-filter': 'duration <= 600', // LIMIT MAX 10 MINS
                 'js-runtimes': 'node',
             }, { stdio: ['ignore', 'pipe', 'ignore'] });
 
@@ -83,5 +83,5 @@ app.get('/play', (req, res) => {
 });
 
 app.listen(port, () => {
-    console.log(`Boombox API running on port ${port}`);
+    console.log(`[BetterBoombox] API Server is running on port ${port}`);
 });
