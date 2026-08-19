@@ -50,12 +50,27 @@ public OnFilterScriptInit()
     print("--------------------------------------\n");
 
     GetConsoleVarAsString("bbb_api_url", API_BASE_URL, sizeof(API_BASE_URL));
+    
+    // BERSIHKAN NEWLINE/SPASI AGAR URL TIDAK CORRUPT
+    for(new i = 0; i < strlen(API_BASE_URL); i++) {
+        if(API_BASE_URL[i] == '\r' || API_BASE_URL[i] == '\n' || API_BASE_URL[i] == ' ') {
+            API_BASE_URL[i] = '\0';
+            break;
+        }
+    }
+
+    // Mengatasi Bug SA-MP/Open.mp dimana '//' dianggap komentar
+    if(strcmp(API_BASE_URL, "http:", true, 5) == 0 || strcmp(API_BASE_URL, "https:", true, 6) == 0) {
+        print("[BetterBoombox] WARNING: Jangan gunakan 'http://' di server.cfg (Karena '//' dibaca sebagai komentar).");
+        API_BASE_URL[0] = '\0'; // Kosongkan untuk memicu default fallback
+    }
+
     if(strlen(API_BASE_URL) < 5) {
-        format(API_BASE_URL, sizeof(API_BASE_URL), "http://127.0.0.1:3000");
+        format(API_BASE_URL, sizeof(API_BASE_URL), "127.0.0.1:3000");
         print("[BetterBoombox] WARNING: 'bbb_api_url' tidak ditemukan di server.cfg!");
-        print("[BetterBoombox] Menggunakan default: http://127.0.0.1:3000");
+        print("[BetterBoombox] Menggunakan default: 127.0.0.1:3000");
     } else {
-        printf("[BetterBoombox] API tersambung ke: %s", API_BASE_URL);
+        printf("[BetterBoombox] API tersambung ke IP: %s", API_BASE_URL);
     }
 
     for(new i = 0; i < MAX_PLAYERS; i++) {
@@ -374,7 +389,7 @@ public BBB_Update()
             if(PlayerListeningTo[i] != closest_bb_owner)
             {
                 new api_url[512];
-                format(api_url, sizeof(api_url), "%s/play?token=bbb_premium_889&url=%s", API_BASE_URL, Boombox[closest_bb_owner][bbURL]);
+                format(api_url, sizeof(api_url), "http://%s/play?token=bbb_premium_889&url=%s", API_BASE_URL, Boombox[closest_bb_owner][bbURL]);
                 
                 StopAudioStreamForPlayer(i);
                 PlayAudioStreamForPlayer(i, api_url, Boombox[closest_bb_owner][bbX], Boombox[closest_bb_owner][bbY], Boombox[closest_bb_owner][bbZ], maxDist, 1);
