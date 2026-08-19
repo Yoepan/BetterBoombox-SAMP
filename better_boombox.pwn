@@ -266,6 +266,8 @@ public OnDialogResponse(playerid, dialogid, response, listitem, inputtext[])
         format(Boombox[playerid][bbURL], 256, "%s", inputtext);
         Boombox[playerid][bbPlaying] = true;
         
+        SendClientMessage(playerid, 0xFFFF00FF, "[BetterBoombox] Please wait a few seconds for the audio stream to buffer...");
+        
         for(new i = 0; i < MAX_PLAYERS; i++) {
             if(IsPlayerConnected(i) && PlayerListeningTo[i] == playerid) {
                 StopAudioStreamForPlayer(i);
@@ -311,6 +313,9 @@ public OnDialogResponse(playerid, dialogid, response, listitem, inputtext[])
         {
             format(Boombox[playerid][bbURL], 256, "%s", PlayerPlaylist[playerid][slot][plURL]);
             Boombox[playerid][bbPlaying] = true;
+            
+            SendClientMessage(playerid, 0xFFFF00FF, "[BetterBoombox] Please wait a few seconds for the audio stream to buffer...");
+            
             for(new i = 0; i < MAX_PLAYERS; i++) {
                 if(IsPlayerConnected(i) && PlayerListeningTo[i] == playerid) {
                     StopAudioStreamForPlayer(i);
