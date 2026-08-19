@@ -35,6 +35,7 @@ app.get('/play', (req, res) => {
                 o: '-',
                 f: '18',
                 'extractor-args': 'youtube:player_client=android',
+                'match-filter': 'duration <= 600', // LIMIT MAX 10 MENIT
                 'js-runtimes': 'node',
             }, { stdio: ['ignore', 'pipe', 'ignore'] });
 

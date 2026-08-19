@@ -4,6 +4,10 @@
 The most lightweight & lag-free YouTube Boombox system for SA-MP.
 Designed specifically to be flexibly integrated into Roleplay Servers (Inventory Systems) or Freeroam Servers.
 
+**🌟 Update v1.1 Features:**
+- **Personal Playlist:** Save up to 5 favorite songs per player.
+- **Duration Limit:** Maximum 10 minutes per song to prevent abuse.
+
 ---
 
 ## ENGLISH VERSION
@@ -74,6 +78,10 @@ Because this system is standalone and lag-free, you must run the API engine on y
 ---
 
 ## VERSI BAHASA INDONESIA
+
+**🌟 Fitur Update v1.1:**
+- **Personal Playlist:** Simpan hingga 5 lagu favorit per player.
+- **Duration Limit:** Maksimal durasi 10 menit per lagu untuk mencegah penyalahgunaan.
 
 ### 1. PERSIAPAN FILE (WAJIB UNTUK SEMUA SERVER)
 1. Masukkan `better_boombox.amx` ke folder `filterscripts` server Anda.
