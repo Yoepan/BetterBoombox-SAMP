@@ -1,0 +1,303 @@
+#define FILTERSCRIPT
+#include <open.mp>
+
+#define MAX_BOOMBOXES MAX_PLAYERS
+
+enum E_BOOMBOX {
+    bool:bbExists,
+    bbOwnerID,
+    bbOwnerName[MAX_PLAYER_NAME],
+    bbObjectID,
+    Text3D:bbLabel,
+    Float:bbX, Float:bbY, Float:bbZ,
+    bbInterior, bbVW,
+    bbRadius,
+    bbURL[256],
+    bool:bbPlaying
+}
+
+new Boombox[MAX_BOOMBOXES][E_BOOMBOX];
+new PlayerListeningTo[MAX_PLAYERS];
+new API_BASE_URL[128]; // Menyimpan IP VPS API
+
+// Pakai ID Dialog tinggi biar gak bentrok sama dialog Gamemode pembeli
+#define DIALOG_BBB_MAIN    28400
+#define DIALOG_BBB_URL     28401
+#define DIALOG_BBB_RADIUS  28402
+
+forward BBB_Update();
+
+public OnFilterScriptInit()
+{
+    print("\n--------------------------------------");
+    print(" [FS] BetterBoombox System Loaded");
+    print("      Optimized & Production Ready");
+    print("--------------------------------------\n");
+
+    // Mengambil IP API dari server.cfg pembeli
+    GetConsoleVarAsString("bbb_api_url", API_BASE_URL, sizeof(API_BASE_URL));
+    if(strlen(API_BASE_URL) < 5) {
+        // Kalau pembeli lupa nulis di server.cfg, kita pakai default localhost
+        format(API_BASE_URL, sizeof(API_BASE_URL), "http://127.0.0.1:3000");
+        print("[BetterBoombox] WARNING: 'bbb_api_url' tidak ditemukan di server.cfg!");
+        print("[BetterBoombox] Menggunakan default: http://127.0.0.1:3000");
+    } else {
+        printf("[BetterBoombox] API tersambung ke: %s", API_BASE_URL);
+    }
+
+    for(new i = 0; i < MAX_PLAYERS; i++) {
+        PlayerListeningTo[i] = -1;
+        Boombox[i][bbExists] = false;
+    }
+    SetTimer("BBB_Update", 1000, true);
+    return 1;
+}
+
+public OnFilterScriptExit()
+{
+    for(new i = 0; i < MAX_BOOMBOXES; i++) {
+        if(Boombox[i][bbExists]) {
+            DestroyObject(Boombox[i][bbObjectID]);
+            Delete3DTextLabel(Boombox[i][bbLabel]);
+        }
+    }
+    return 1;
+}
+
+public OnPlayerConnect(playerid)
+{
+    PlayerListeningTo[playerid] = -1;
+    return 1;
+}
+
+public OnPlayerDisconnect(playerid, reason)
+{
+    if(Boombox[playerid][bbExists]) {
+        DestroyObject(Boombox[playerid][bbObjectID]);
+        Delete3DTextLabel(Boombox[playerid][bbLabel]);
+        Boombox[playerid][bbExists] = false;
+        Boombox[playerid][bbPlaying] = false;
+        
+        for(new i = 0; i < MAX_PLAYERS; i++) {
+            if(IsPlayerConnected(i) && PlayerListeningTo[i] == playerid) {
+                StopAudioStreamForPlayer(i);
+                PlayerListeningTo[i] = -1;
+            }
+        }
+    }
+    return 1;
+}
+
+// ==========================================
+// EXPORTED API UNTUK GAMEMODE PEMBELI
+// Gamemode panggil ini saat player nge-klik 'Gunakan' di tas
+// ==========================================
+forward PlaceBetterBoombox(playerid);
+public PlaceBetterBoombox(playerid)
+{
+    if(Boombox[playerid][bbExists]) {
+        SendClientMessage(playerid, 0xFF0000FF, "[BetterBoombox] You already placed a boombox! Pickup the old one first.");
+        return 0; // Return 0 artinya gagal (Gamemode pembeli bisa ngebatalin hapus item)
+    }
+
+    new Float:x, Float:y, Float:z, Float:a;
+    GetPlayerPos(playerid, x, y, z);
+    GetPlayerFacingAngle(playerid, a);
+
+    x += (1.0 * floatsin(-a, degrees));
+    y += (1.0 * floatcos(-a, degrees));
+    z -= 0.8;
+
+    GetPlayerName(playerid, Boombox[playerid][bbOwnerName], MAX_PLAYER_NAME);
+    Boombox[playerid][bbOwnerID] = playerid;
+    Boombox[playerid][bbX] = x;
+    Boombox[playerid][bbY] = y;
+    Boombox[playerid][bbZ] = z;
+    Boombox[playerid][bbInterior] = GetPlayerInterior(playerid);
+    Boombox[playerid][bbVW] = GetPlayerVirtualWorld(playerid);
+    Boombox[playerid][bbRadius] = 100;
+    Boombox[playerid][bbPlaying] = false;
+    Boombox[playerid][bbURL][0] = '\0';
+
+    Boombox[playerid][bbObjectID] = CreateObject(2226, x, y, z, 0.0, 0.0, a);
+    
+    new labelStr[128];
+    format(labelStr, sizeof(labelStr), "{FFaa00}%s's BetterBoombox\n{FFFFFF}/setbb or /pickupbb", Boombox[playerid][bbOwnerName]);
+    Boombox[playerid][bbLabel] = Create3DTextLabel(labelStr, 0xFFFFFFFF, x, y, z + 0.8, 10.0, Boombox[playerid][bbVW], 0);
+
+    Boombox[playerid][bbExists] = true;
+
+    SendClientMessage(playerid, 0x00FF00FF, "[BetterBoombox] Boombox placed successfully!");
+    return 1; // Return 1 artinya sukses ditaruh
+}
+
+// ==========================================
+// INTERNAL COMMANDS
+// ==========================================
+public OnPlayerCommandText(playerid, cmdtext[])
+{
+    if(strcmp(cmdtext, "/pickupbb", true) == 0)
+    {
+        if(!Boombox[playerid][bbExists]) return 0;
+        if(GetPlayerSpecialAction(playerid) != SPECIAL_ACTION_DUCK) return 0;
+        if(GetPlayerDistanceFromPoint(playerid, Boombox[playerid][bbX], Boombox[playerid][bbY], Boombox[playerid][bbZ]) > 3.0) return 0;
+
+        for(new i = 0; i < MAX_PLAYERS; i++) {
+            if(IsPlayerConnected(i) && PlayerListeningTo[i] == playerid) {
+                StopAudioStreamForPlayer(i);
+                PlayerListeningTo[i] = -1;
+            }
+        }
+
+        DestroyObject(Boombox[playerid][bbObjectID]);
+        Delete3DTextLabel(Boombox[playerid][bbLabel]);
+        Boombox[playerid][bbExists] = false;
+        Boombox[playerid][bbPlaying] = false;
+        
+        // MANGGIL GAMEMODE PEMBELI BUAT MASUKIN ITEM KEMBALI KE TAS MEREKA
+        CallRemoteFunction("OnBetterBoomboxPickup", "i", playerid);
+        
+        SendClientMessage(playerid, 0x00FF00FF, "[BetterBoombox] Boombox picked up!");
+        return 1;
+    }
+
+    if(strcmp(cmdtext, "/setbb", true) == 0)
+    {
+        if(!Boombox[playerid][bbExists]) return 0;
+        if(GetPlayerSpecialAction(playerid) != SPECIAL_ACTION_DUCK) return 0;
+        if(GetPlayerDistanceFromPoint(playerid, Boombox[playerid][bbX], Boombox[playerid][bbY], Boombox[playerid][bbZ]) > 3.0) return 0;
+
+        ShowBBBMainMenu(playerid);
+        return 1;
+    }
+
+    return 0; // Return 0 biar command lain tetap jalan di Gamemode pembeli (Tidak bentrok)
+}
+
+stock ShowBBBMainMenu(playerid)
+{
+    new str[256];
+    format(str, sizeof(str), "Play Music\nStop Music\nSet Radius (Current: %d%%)", Boombox[playerid][bbRadius]);
+    ShowPlayerDialog(playerid, DIALOG_BBB_MAIN, DIALOG_STYLE_LIST, "BetterBoombox", str, "Select", "Close");
+    return 1;
+}
+
+public OnDialogResponse(playerid, dialogid, response, listitem, inputtext[])
+{
+    if(dialogid == DIALOG_BBB_MAIN)
+    {
+        if(!response) return 1;
+        switch(listitem)
+        {
+            case 0: ShowPlayerDialog(playerid, DIALOG_BBB_URL, DIALOG_STYLE_INPUT, "Play Music", "Enter YouTube URL:", "Play", "Back");
+            case 1: 
+            {
+                Boombox[playerid][bbPlaying] = false;
+                for(new i = 0; i < MAX_PLAYERS; i++) {
+                    if(IsPlayerConnected(i) && PlayerListeningTo[i] == playerid) {
+                        StopAudioStreamForPlayer(i);
+                        PlayerListeningTo[i] = -1;
+                    }
+                }
+                ShowBBBMainMenu(playerid);
+            }
+            case 2:
+            {
+                new str[128];
+                format(str, sizeof(str), "20%%\n40%%\n60%%\n80%%\n100%%");
+                ShowPlayerDialog(playerid, DIALOG_BBB_RADIUS, DIALOG_STYLE_LIST, "Radius", str, "Save", "Back");
+            }
+        }
+        return 1;
+    }
+    
+    if(dialogid == DIALOG_BBB_URL)
+    {
+        if(!response) return ShowBBBMainMenu(playerid);
+        if(strlen(inputtext) < 5) return ShowBBBMainMenu(playerid);
+
+        format(Boombox[playerid][bbURL], 256, "%s", inputtext);
+        Boombox[playerid][bbPlaying] = true;
+        
+        for(new i = 0; i < MAX_PLAYERS; i++) {
+            if(IsPlayerConnected(i) && PlayerListeningTo[i] == playerid) {
+                StopAudioStreamForPlayer(i);
+                PlayerListeningTo[i] = -1;
+            }
+        }
+        return 1;
+    }
+
+    if(dialogid == DIALOG_BBB_RADIUS)
+    {
+        if(!response) return ShowBBBMainMenu(playerid);
+        
+        Boombox[playerid][bbRadius] = 20 + (listitem * 20);
+        
+        for(new i = 0; i < MAX_PLAYERS; i++) {
+            if(IsPlayerConnected(i) && PlayerListeningTo[i] == playerid) {
+                StopAudioStreamForPlayer(i);
+                PlayerListeningTo[i] = -1;
+            }
+        }
+
+        ShowBBBMainMenu(playerid);
+        return 1;
+    }
+
+    return 0; // Return 0 biar dialog Gamemode pembeli gak keganggu
+}
+
+public BBB_Update()
+{
+    new highest_player = GetMaxPlayers();
+    if(highest_player == 0) return;
+
+    for(new i = 0; i <= highest_player; i++)
+    {
+        if(!IsPlayerConnected(i)) continue;
+
+        new closest_bb_owner = -1;
+        new Float:closest_dist = 99999.0;
+        new Float:pX, Float:pY, Float:pZ;
+        new pVW = GetPlayerVirtualWorld(i);
+        new pInt = GetPlayerInterior(i);
+        
+        GetPlayerPos(i, pX, pY, pZ);
+
+        for(new b = 0; b <= highest_player; b++)
+        {
+            if(!Boombox[b][bbExists] || !Boombox[b][bbPlaying]) continue;
+            if(pVW != Boombox[b][bbVW]) continue;
+            if(pInt != Boombox[b][bbInterior]) continue;
+
+            new Float:dist = VectorSize(pX - Boombox[b][bbX], pY - Boombox[b][bbY], pZ - Boombox[b][bbZ]);
+            if(dist <= 100.0 && dist < closest_dist) {
+                closest_dist = dist;
+                closest_bb_owner = b;
+            }
+        }
+
+        if(closest_bb_owner != -1)
+        {
+            new Float:maxDist = 30.0 * (float(Boombox[closest_bb_owner][bbRadius]) / 100.0);
+            if(PlayerListeningTo[i] != closest_bb_owner)
+            {
+                new api_url[512];
+                format(api_url, sizeof(api_url), "%s/play?url=%s&token=bbb_premium_889", API_BASE_URL, Boombox[closest_bb_owner][bbURL]);
+                
+                StopAudioStreamForPlayer(i);
+                PlayAudioStreamForPlayer(i, api_url, Boombox[closest_bb_owner][bbX], Boombox[closest_bb_owner][bbY], Boombox[closest_bb_owner][bbZ], maxDist, 1);
+                PlayerListeningTo[i] = closest_bb_owner;
+            }
+        }
+        else
+        {
+            if(PlayerListeningTo[i] != -1)
+            {
+                StopAudioStreamForPlayer(i);
+                PlayerListeningTo[i] = -1;
+            }
+        }
+    }
+}

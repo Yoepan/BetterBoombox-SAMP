@@ -1,0 +1,14 @@
+{
+  "name": "youtube-boombox-api",
+  "version": "1.0.0",
+  "description": "API Backend for SA-MP YouTube Boombox",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "dependencies": {
+    "express": "^4.18.2",
+    "play-dl": "^1.9.7",
+    "youtube-dl-exec": "^3.1.12"
+  }
+}
