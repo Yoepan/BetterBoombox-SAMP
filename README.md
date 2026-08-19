@@ -1,10 +1,9 @@
 # BetterBoombox for SA-MP
-*(Scroll down for Indonesian version / Scroll ke bawah untuk versi Bahasa Indonesia)*
 
 The most lightweight & lag-free YouTube Boombox system for SA-MP.
 Designed specifically to be flexibly integrated into Roleplay Servers (Inventory Systems) or Freeroam Servers.
 
-**🌟 Update v1.1 Features:**
+** Update v1.1 Features:**
 - **Personal Playlist:** Save up to 5 favorite songs per player.
 - **Duration Limit:** Maximum 10 minutes per song to prevent abuse.
 
