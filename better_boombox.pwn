@@ -95,17 +95,72 @@ public OnFilterScriptExit()
     return 1;
 }
 
+stock StripNewline(string[])
+{
+    new len = strlen(string);
+    for(new i = len - 1; i >= 0; i--) {
+        if(string[i] == '\r' || string[i] == '\n') string[i] = '\0';
+        else break;
+    }
+}
+
+stock SavePlayerPlaylist(playerid)
+{
+    new path[64], name[MAX_PLAYER_NAME];
+    GetPlayerName(playerid, name, sizeof(name));
+    format(path, sizeof(path), "bbb_%s.txt", name); // Disimpan di scriptfiles/bbb_NamaPlayer.txt
+    
+    new File:f = fopen(path, io_write);
+    if(f) {
+        for(new i = 0; i < MAX_PLAYLIST_SONGS; i++) {
+            new line[512];
+            format(line, sizeof(line), "%d\n%s\n%s\n", PlayerPlaylist[playerid][i][plUsed], PlayerPlaylist[playerid][i][plTitle], PlayerPlaylist[playerid][i][plURL]);
+            fwrite(f, line);
+        }
+        fclose(f);
+    }
+}
+
+stock LoadPlayerPlaylist(playerid)
+{
+    new path[64], name[MAX_PLAYER_NAME];
+    GetPlayerName(playerid, name, sizeof(name));
+    format(path, sizeof(path), "bbb_%s.txt", name);
+    
+    new File:f = fopen(path, io_read);
+    if(f) {
+        for(new i = 0; i < MAX_PLAYLIST_SONGS; i++) {
+            new line[256];
+            
+            // Read Used
+            if(fread(f, line)) { StripNewline(line); PlayerPlaylist[playerid][i][plUsed] = (strval(line) == 1) ? true : false; }
+            
+            // Read Title
+            if(fread(f, line)) { StripNewline(line); format(PlayerPlaylist[playerid][i][plTitle], 64, "%s", line); }
+            
+            // Read URL
+            if(fread(f, line)) { StripNewline(line); format(PlayerPlaylist[playerid][i][plURL], 256, "%s", line); }
+        }
+        fclose(f);
+    }
+}
+
 public OnPlayerConnect(playerid)
 {
     PlayerListeningTo[playerid] = -1;
     for(new s = 0; s < MAX_PLAYLIST_SONGS; s++) {
         PlayerPlaylist[playerid][s][plUsed] = false;
+        PlayerPlaylist[playerid][s][plTitle][0] = '\0';
+        PlayerPlaylist[playerid][s][plURL][0] = '\0';
     }
+    LoadPlayerPlaylist(playerid); // Load data saat player login
     return 1;
 }
 
 public OnPlayerDisconnect(playerid, reason)
 {
+    SavePlayerPlaylist(playerid); // Simpan data saat player keluar
+
     if(Boombox[playerid][bbExists]) {
         DestroyObject(Boombox[playerid][bbObjectID]);
         Delete3DTextLabel(Boombox[playerid][bbLabel]);
@@ -326,6 +381,7 @@ public OnDialogResponse(playerid, dialogid, response, listitem, inputtext[])
         else if(listitem == 1) // Delete
         {
             PlayerPlaylist[playerid][slot][plUsed] = false;
+            SavePlayerPlaylist(playerid);
             ShowBBBPlaylist(playerid);
         }
         return 1;
@@ -351,6 +407,7 @@ public OnDialogResponse(playerid, dialogid, response, listitem, inputtext[])
         format(PlayerPlaylist[playerid][slot][plTitle], 64, "%s", inputtext);
         PlayerPlaylist[playerid][slot][plUsed] = true;
         
+        SavePlayerPlaylist(playerid);
         ShowBBBPlaylist(playerid);
         return 1;
     }
