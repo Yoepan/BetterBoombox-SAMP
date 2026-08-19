@@ -1,9 +1,10 @@
 # BetterBoombox for SA-MP
+*(Scroll down for Indonesian version / Scroll ke bawah untuk versi Bahasa Indonesia)*
 
 The most lightweight & lag-free YouTube Boombox system for SA-MP.
 Designed specifically to be flexibly integrated into Roleplay Servers (Inventory Systems) or Freeroam Servers.
 
-**Update v1.1 Features:**
+**🌟 Update v1.1 Features:**
 - **Personal Playlist:** Save up to 5 favorite songs per player.
 - **Duration Limit:** Maximum 10 minutes per song to prevent abuse.
 
@@ -14,11 +15,11 @@ Designed specifically to be flexibly integrated into Roleplay Servers (Inventory
 ### 1. FILE PREPARATION (REQUIRED FOR ALL SERVERS)
 1. Place `better_boombox.amx` into your server's `filterscripts` folder.
 2. Open `server.cfg`, and add `better_boombox` to the `filterscripts` line.
-3. Still in `server.cfg`, add a new line for your API IP:
+3. Still in `server.cfg`, add a new line for your API IP (DO NOT include http://):
    ```text
-   bbb_api_url http://YOUR_VPS_IP:3000
+   bbb_api_url YOUR_VPS_IP:3000
    ```
-   *(Example: `bbb_api_url http://103.82.11.55:3000`)*
+   *(Example: `bbb_api_url 103.82.11.55:3000`)*
 
 ### 2. GAMEMODE INTEGRATION
 
@@ -78,18 +79,18 @@ Because this system is standalone and lag-free, you must run the API engine on y
 
 ## VERSI BAHASA INDONESIA
 
-**Fitur Update v1.1:**
+**🌟 Fitur Update v1.1:**
 - **Personal Playlist:** Simpan hingga 5 lagu favorit per player.
 - **Duration Limit:** Maksimal durasi 10 menit per lagu untuk mencegah penyalahgunaan.
 
 ### 1. PERSIAPAN FILE (WAJIB UNTUK SEMUA SERVER)
 1. Masukkan `better_boombox.amx` ke folder `filterscripts` server Anda.
 2. Buka `server.cfg`, lalu tambahkan `better_boombox` di baris `filterscripts`.
-3. Masih di `server.cfg`, tambahkan baris baru untuk IP API Anda:
+3. Masih di `server.cfg`, tambahkan baris baru untuk IP API Anda (JANGAN sertakan http://):
    ```text
-   bbb_api_url http://IP_VPS_ANDA:3000
+   bbb_api_url IP_VPS_ANDA:3000
    ```
-   *(Contoh: `bbb_api_url http://103.82.11.55:3000`)*
+   *(Contoh: `bbb_api_url 103.82.11.55:3000`)*
 
 ### 2. CARA PEMASANGAN DI GAMEMODE
 
