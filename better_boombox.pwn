@@ -25,12 +25,11 @@ enum E_PLAYLIST {
 
 new Boombox[MAX_BOOMBOXES][E_BOOMBOX];
 new PlayerListeningTo[MAX_PLAYERS];
-new API_BASE_URL[128]; // Menyimpan IP VPS API
+new API_BASE_URL[128];
 
 new PlayerPlaylist[MAX_PLAYERS][MAX_PLAYLIST_SONGS][E_PLAYLIST];
 new SelectedPlaylistSlot[MAX_PLAYERS];
 
-// Pakai ID Dialog tinggi biar gak bentrok sama dialog Gamemode pembeli
 #define DIALOG_BBB_MAIN     28400
 #define DIALOG_BBB_URL      28401
 #define DIALOG_BBB_RADIUS   28402
@@ -51,7 +50,6 @@ public OnFilterScriptInit()
 
     GetConsoleVarAsString("bbb_api_url", API_BASE_URL, sizeof(API_BASE_URL));
     
-    // BERSIHKAN NEWLINE/SPASI AGAR URL TIDAK CORRUPT
     for(new i = 0; i < strlen(API_BASE_URL); i++) {
         if(API_BASE_URL[i] == '\r' || API_BASE_URL[i] == '\n' || API_BASE_URL[i] == ' ') {
             API_BASE_URL[i] = '\0';
@@ -59,18 +57,17 @@ public OnFilterScriptInit()
         }
     }
 
-    // Mengatasi Bug SA-MP/Open.mp dimana '//' dianggap komentar
     if(strcmp(API_BASE_URL, "http:", true, 5) == 0 || strcmp(API_BASE_URL, "https:", true, 6) == 0) {
-        print("[BetterBoombox] WARNING: Jangan gunakan 'http://' di server.cfg (Karena '//' dibaca sebagai komentar).");
-        API_BASE_URL[0] = '\0'; // Kosongkan untuk memicu default fallback
+        print("[BetterBoombox] WARNING: Do not use 'http://' in server.cfg (Because '//' is read as a comment).");
+        API_BASE_URL[0] = '\0';
     }
 
     if(strlen(API_BASE_URL) < 5) {
         format(API_BASE_URL, sizeof(API_BASE_URL), "127.0.0.1:3000");
-        print("[BetterBoombox] WARNING: 'bbb_api_url' tidak ditemukan di server.cfg!");
-        print("[BetterBoombox] Menggunakan default: 127.0.0.1:3000");
+        print("[BetterBoombox] WARNING: 'bbb_api_url' not found in server.cfg!");
+        print("[BetterBoombox] Using default: 127.0.0.1:3000");
     } else {
-        printf("[BetterBoombox] API tersambung ke IP: %s", API_BASE_URL);
+        printf("[BetterBoombox] API connected to IP: %s", API_BASE_URL);
     }
 
     for(new i = 0; i < MAX_PLAYERS; i++) {
@@ -108,7 +105,7 @@ stock SavePlayerPlaylist(playerid)
 {
     new path[64], name[MAX_PLAYER_NAME];
     GetPlayerName(playerid, name, sizeof(name));
-    format(path, sizeof(path), "bbb_%s.txt", name); // Disimpan di scriptfiles/bbb_NamaPlayer.txt
+    format(path, sizeof(path), "bbb_%s.txt", name);
     
     new File:f = fopen(path, io_write);
     if(f) {
@@ -132,13 +129,10 @@ stock LoadPlayerPlaylist(playerid)
         for(new i = 0; i < MAX_PLAYLIST_SONGS; i++) {
             new line[256];
             
-            // Read Used
             if(fread(f, line)) { StripNewline(line); PlayerPlaylist[playerid][i][plUsed] = (strval(line) == 1) ? true : false; }
             
-            // Read Title
             if(fread(f, line)) { StripNewline(line); format(PlayerPlaylist[playerid][i][plTitle], 64, "%s", line); }
             
-            // Read URL
             if(fread(f, line)) { StripNewline(line); format(PlayerPlaylist[playerid][i][plURL], 256, "%s", line); }
         }
         fclose(f);
@@ -153,13 +147,13 @@ public OnPlayerConnect(playerid)
         PlayerPlaylist[playerid][s][plTitle][0] = '\0';
         PlayerPlaylist[playerid][s][plURL][0] = '\0';
     }
-    LoadPlayerPlaylist(playerid); // Load data saat player login
+    LoadPlayerPlaylist(playerid);
     return 1;
 }
 
 public OnPlayerDisconnect(playerid, reason)
 {
-    SavePlayerPlaylist(playerid); // Simpan data saat player keluar
+    SavePlayerPlaylist(playerid);
 
     if(Boombox[playerid][bbExists]) {
         DestroyObject(Boombox[playerid][bbObjectID]);
@@ -206,7 +200,6 @@ public PlaceBetterBoombox(playerid)
 
     Boombox[playerid][bbObjectID] = CreateObject(2226, x, y, z, 0.0, 0.0, a);
     
-    // Animasi Naruh Boombox
     ApplyAnimation(playerid, "BOMBER", "BOM_Plant", 4.0, 0, 0, 0, 0, 0);
     
     new labelStr[128];
@@ -221,13 +214,18 @@ public PlaceBetterBoombox(playerid)
 
 public OnPlayerCommandText(playerid, cmdtext[])
 {
+    if(strcmp(cmdtext, "/boombox", true) == 0)
+    {
+        PlaceBetterBoombox(playerid);
+        return 1;
+    }
+
     if(strcmp(cmdtext, "/pickupbb", true) == 0)
     {
         if(!Boombox[playerid][bbExists]) return SendClientMessage(playerid, 0xFF0000FF, "[BetterBoombox] You don't have a boombox placed.");
         if(GetPlayerSpecialAction(playerid) != SPECIAL_ACTION_DUCK) return SendClientMessage(playerid, 0xFF0000FF, "[BetterBoombox] You must crouch (C) to pick up your boombox.");
         if(GetPlayerDistanceFromPoint(playerid, Boombox[playerid][bbX], Boombox[playerid][bbY], Boombox[playerid][bbZ]) > 3.0) return SendClientMessage(playerid, 0xFF0000FF, "[BetterBoombox] You are too far from your boombox.");
 
-        // Animasi Ngambil Boombox
         ApplyAnimation(playerid, "BOMBER", "BOM_Plant", 4.0, 0, 0, 0, 0, 0);
 
         for(new i = 0; i < MAX_PLAYERS; i++) {
@@ -364,7 +362,7 @@ public OnDialogResponse(playerid, dialogid, response, listitem, inputtext[])
         if(!response) return ShowBBBPlaylist(playerid);
         new slot = SelectedPlaylistSlot[playerid];
         
-        if(listitem == 0) // Play
+        if(listitem == 0)
         {
             format(Boombox[playerid][bbURL], 256, "%s", PlayerPlaylist[playerid][slot][plURL]);
             Boombox[playerid][bbPlaying] = true;
@@ -378,7 +376,7 @@ public OnDialogResponse(playerid, dialogid, response, listitem, inputtext[])
                 }
             }
         }
-        else if(listitem == 1) // Delete
+        else if(listitem == 1)
         {
             PlayerPlaylist[playerid][slot][plUsed] = false;
             SavePlayerPlaylist(playerid);
