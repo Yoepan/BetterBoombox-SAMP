@@ -5,7 +5,7 @@ The most lightweight & lag-free YouTube Boombox system for SA-MP.
 Designed specifically to be flexibly integrated into Roleplay Servers (Inventory Systems) or Freeroam Servers.
 
 **Update v1.2 Features:**
-- **Spotify Support:** Seamlessly play songs using Spotify Track URLs (Automatically falls back to YouTube audio).
+- **Spotify Support:** Seamlessly play songs using Spotify Track URLs.
 
 **Update v1.1 Features:**
 - **Personal Playlist:** Save up to 5 favorite songs per player.
@@ -83,7 +83,7 @@ Because this system is standalone and lag-free, you must run the API engine on y
 ## VERSI BAHASA INDONESIA
 
 **Fitur Update v1.2:**
-- **Spotify Support:** Bisa memutar lagu menggunakan URL Track Spotify (Otomatis dialihkan ke audio YouTube).
+- **Spotify Support:** Bisa memutar lagu menggunakan URL Track Spotify.
 
 **Fitur Update v1.1:**
 - **Personal Playlist:** Simpan hingga 5 lagu favorit per player.
