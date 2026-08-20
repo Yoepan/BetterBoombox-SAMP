@@ -214,12 +214,6 @@ public PlaceBetterBoombox(playerid)
 
 public OnPlayerCommandText(playerid, cmdtext[])
 {
-    if(strcmp(cmdtext, "/boombox", true) == 0)
-    {
-        PlaceBetterBoombox(playerid);
-        return 1;
-    }
-
     if(strcmp(cmdtext, "/pickupbb", true) == 0)
     {
         if(!Boombox[playerid][bbExists]) return SendClientMessage(playerid, 0xFF0000FF, "[BetterBoombox] You don't have a boombox placed.");
