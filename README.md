@@ -1,7 +1,6 @@
 # BetterBoombox for SA-MP
-*(Scroll down for Indonesian version / Scroll ke bawah untuk versi Bahasa Indonesia)*
 
-The most lightweight & lag-free YouTube Boombox system for SA-MP.
+Make boombox easier, just copy song link from Youtube or Spotify.
 Designed specifically to be flexibly integrated into Roleplay Servers (Inventory Systems) or Freeroam Servers.
 
 **Update v1.2 Features:**
